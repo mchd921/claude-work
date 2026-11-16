@@ -22,6 +22,16 @@ node tests/check.mjs
 
 遊び心地はブラウザでしか確認できない（`index.html` を直接開くか、PagesのURLで確認する）。
 
+## ハーネス（`.claude/`）
+
+`.claude/settings.json` に登録したフックが、AIの判断とは関係なく自動で動く。
+
+- **編集の直後**（`hooks/run-checks.sh`）：Edit/Writeで `index.html` か `tests/` を変えると、`tests/check.mjs` を実行する。失敗すると結果がAIに返される。
+- **返事を終える直前**（`hooks/check-on-stop.sh`）：もう一度チェックを実行し、失敗していたら終われない（Bashで書き換えた場合もここで捕まえる）。
+- **git pushの前**（`hooks/guard-push.sh`）：強制pushは拒否し、`main` へのpushは必ずユーザーに確認ダイアログを出す。
+
+フックに止められたら、迂回せずに原因を直す。
+
 ## 構成（`index.html` の中身）
 
 - **座標系**：ゲームの処理はすべて 480×640 の固定サイズ（`W`, `H`）で行う。`resize()` が `ctx.setTransform` でウィンドウサイズとdevicePixelRatioに合わせて拡大縮小する。ポインタの位置は `toGameX`/`toGameY` で変換する。ゲームの処理に実際のピクセル数を使わないこと。
