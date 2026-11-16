@@ -12,11 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 動作確認
 
-テストはない。スクリプトの文法エラーは、ページから取り出してNodeでチェックする。
+`index.html` を変えたら、終わりにする前に必ず次を実行し、すべてOKになることを確かめる。
 
 ```bash
-sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/game.js && node --check /tmp/game.js
+node tests/check.mjs
 ```
+
+文法チェックと、にせもののブラウザでゲームを動かすテスト（状態の進み方、ステージの形、スピード上限、ゲームオーバーからのやり直し、localStorageが使えない場合）を約2秒で行う。ゲームの中身は `window.__breakout`（スクリプトの末尾）から見ている。仕様を変えたときはテストも合わせて直し、新しい機能にはテストを足す。
 
 遊び心地はブラウザでしか確認できない（`index.html` を直接開くか、PagesのURLで確認する）。
 

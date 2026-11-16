@@ -467,6 +467,17 @@
   }
   buildLevel();
   requestAnimationFrame(loop);
+
+  // ===== テスト用ののぞき窓（tests/check.mjs が使う。ゲームの動きには影響しない） =====
+  window.__breakout = {
+    get state() { return state; },
+    get score() { return score; },
+    get lives() { return lives; },
+    get level() { return level; },
+    set level(v) { level = v; },
+    get bricks() { return bricks; },
+    ball, paddle, W, H, MAX_SPEED, buildLevel,
+  };
 })();
 </script>
 </body>
