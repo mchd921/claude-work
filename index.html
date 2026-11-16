@@ -104,10 +104,23 @@
         bricks.push({
           x: LEFT + c * (BW + GAP),
           y: TOP + r * (BH + GAP),
+          r, c,
           hp, maxHp: hp,
           color: COLORS[r % COLORS.length],
+          type: 'normal',
           alive: true,
         });
+      }
+    }
+
+    // 爆発ブロック：ステージ2から2個、ステージ5から3個。硬くない段から、毎回同じ位置を選ぶ
+    if (level >= 2) {
+      const soft = bricks.filter((b) => b.hp === 1);
+      const count = level >= 5 ? 3 : 2;
+      for (let k = 0; k < count && soft.length > 0; k++) {
+        const b = soft.splice((level * 7 + k * 13) % soft.length, 1)[0];
+        b.type = 'bomb';
+        b.color = '#3a3350';
       }
     }
   }
@@ -228,6 +241,19 @@
     ball.vy = ball.vy / cur * s;
   }
 
+  // 爆発ブロックが壊れたとき：周り8マスのブロックを硬さに関係なく壊す。爆発ブロックがあれば連鎖する
+  function explode(bomb) {
+    beep(110, 0.3, 'sawtooth', 0.1);
+    spawnParticles(bomb.x + BW / 2, bomb.y + BH / 2, '#ff9f43');
+    for (const o of bricks) {
+      if (!o.alive || Math.abs(o.r - bomb.r) > 1 || Math.abs(o.c - bomb.c) > 1) continue;
+      o.alive = false;
+      score += 10 * level;
+      spawnParticles(o.x + BW / 2, o.y + BH / 2, o.color);
+      if (o.type === 'bomb') explode(o);
+    }
+  }
+
   function update(f) {
     // パドル移動
     if (state !== 'pause') {
@@ -308,6 +334,7 @@
           score += 10 * level;
           spawnParticles(b.x + BW / 2, b.y + BH / 2, b.color);
           beep(880 + Math.random() * 200, 0.06);
+          if (b.type === 'bomb') explode(b);
         } else {
           score += 5;
           beep(520, 0.05);
@@ -391,6 +418,13 @@
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
+      }
+      if (b.type === 'bomb') {
+        ctx.strokeStyle = '#ff9f43';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        text('✸', b.x + BW / 2, b.y + BH / 2 + 1, 16, '#ff9f43');
+        continue;
       }
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
       roundRect(b.x + 3, b.y + 3, BW - 6, 5, 2);

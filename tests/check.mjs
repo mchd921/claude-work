@@ -160,6 +160,65 @@ check('3回ミスでゲームオーバー → タップで最初からやり直�
     `やり直し後の状態がおかしい (state=${g.state}, lives=${g.lives}, score=${g.score}, level=${g.level})`);
 });
 
+// ---------- 爆発ブロック ----------
+check('爆発ブロックはステージ2から2個、ステージ5から3個出る（ステージ1には出ない）', () => {
+  const b = makeBrowser();
+  for (let lv = 1; lv <= 12; lv++) {
+    b.game.level = lv; b.game.buildLevel();
+    const bombs = b.game.bricks.filter((k) => k.type === 'bomb');
+    const want = lv < 2 ? 0 : lv < 5 ? 2 : 3;
+    assert(bombs.length === want, `ステージ${lv}の爆発ブロックが${bombs.length}個（期待は${want}個）`);
+    assert(bombs.every((k) => k.hp === 1), `ステージ${lv}に硬い爆発ブロックがある`);
+  }
+});
+
+// ステージ lv を始め、ボールを target の真下に置いて上へ打ち、target が壊れるまで進める
+function hitBrick(lv, pick) {
+  const b = makeBrowser();
+  const g = b.game;
+  b.frame(); b.tap(); b.frame(); b.tap();
+  g.level = lv; g.buildLevel();
+  const target = pick(g.bricks);
+  // 真下のブロックはボールの通り道なので先に消しておく
+  for (const k of g.bricks) if (k.r === target.r + 1 && k.c === target.c) k.alive = false;
+  const before = g.bricks.filter((k) => k.alive);
+  const score0 = g.score;
+  g.ball.x = target.x + 26; g.ball.y = target.y + 20 + g.ball.r + 2;
+  g.ball.vx = 0; g.ball.vy = -g.ball.speed;
+  for (let i = 0; i < 60 && target.alive; i++) b.frame();
+  assert(!target.alive, '狙ったブロックにボールが当たらなかった（テストの準備の問題）');
+  return { g, target, before, gained: g.score - score0 };
+}
+const near = (a, k) => Math.abs(a.r - k.r) <= 1 && Math.abs(a.c - k.c) <= 1;
+
+check('爆発ブロックに当てると、周り8マスが硬さに関係なく壊れ、それ以外は残る', () => {
+  // ステージ4：上2段が硬い。周りに他の爆発ブロックがなく、硬いブロックが隣にある爆発ブロックを選ぶ
+  const { g, target, before, gained } = hitBrick(4, (bs) => {
+    const bombs = bs.filter((k) => k.type === 'bomb');
+    return bombs.find((x) => !bombs.some((y) => y !== x && near(x, y))) || bombs[0];
+  });
+  const neighbors = before.filter((k) => k !== target && near(target, k));
+  const others = before.filter((k) => k !== target && !near(target, k));
+  assert(neighbors.length > 0, '周りにブロックがない爆発ブロックを選んでしまった（テストの準備の問題）');
+  assert(neighbors.every((k) => !k.alive), `周りのブロックが ${neighbors.filter((k) => k.alive).length} 個残った`);
+  assert(others.every((k) => k.alive), `周り以外のブロックが ${others.filter((k) => !k.alive).length} 個壊れた`);
+  assert(gained === 10 * 4 * (1 + neighbors.length), `スコアの増え方が ${gained}（期待は ${10 * 4 * (1 + neighbors.length)}）`);
+});
+
+check('爆発ブロックの隣に爆発ブロックがあれば連鎖する', () => {
+  let second;
+  const { before, target } = hitBrick(2, (bs) => {
+    const first = bs.find((k) => k.type === 'bomb');
+    // 右か左の隣を2個目の爆発ブロックにする
+    second = bs.find((k) => k.r === first.r && Math.abs(k.c - first.c) === 1);
+    second.type = 'bomb';
+    return first;
+  });
+  const chain = before.filter((k) => near(second, k) && !near(target, k));
+  assert(chain.length > 0, '連鎖の確認に使えるブロックがない（テストの準備の問題）');
+  assert(chain.every((k) => !k.alive), `連鎖で壊れるはずのブロックが ${chain.filter((k) => k.alive).length} 個残った`);
+});
+
 check('localStorage が使えない環境（プライベートブラウズ等）でも動く', () => {
   const b = makeBrowser({ storageThrows: true });
   b.frame(); b.tap(); b.frame(); b.tap();

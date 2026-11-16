@@ -8,7 +8,9 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/tests"
 cp "$root/tests/check.mjs" "$work/tests/"
-sed "$1" "$root/index.html" > "$work/index.html"
+if ! sed "$1" "$root/index.html" > "$work/index.html"; then
+  echo "⚠ sed の式が間違っている（上のエラーを見る）"; exit 1
+fi
 
 if cmp -s "$root/index.html" "$work/index.html"; then
   echo "⚠ 置き換えが1か所も当たらなかった（sed の文字列を見直す）"; exit 1
