@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0f1020">
+<meta name="theme-color" content="#fdf6fb">
 <title>ブロック崩し</title>
 <style>
   html, body {
     margin: 0;
     height: 100%;
-    background: #0f1020;
+    background: #fdf6fb;
     overflow: hidden;
     touch-action: none;
     -webkit-user-select: none;
@@ -25,9 +25,9 @@
   }
   canvas {
     display: block;
-    background: #161830;
+    background: #fff9fc;
     border-radius: 12px;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 40px rgba(190, 150, 190, 0.35);
   }
 </style>
 </head>
@@ -53,7 +53,7 @@
   resize();
 
   // ===== 設定 =====
-  const COLORS = ['#ff5c7a', '#ff9f43', '#feca57', '#1dd1a1', '#54a0ff', '#a29bfe', '#fd79a8', '#00d2d3'];
+  const COLORS = ['#ffadc6', '#ffc9a3', '#fff0a8', '#b5ead7', '#a8d8ff', '#cdb4f6', '#ffc1e3', '#a6ebeb'];
   const COLS = 8, BW = 52, BH = 20, GAP = 6, TOP = 80;
   const LEFT = (W - (COLS * BW + (COLS - 1) * GAP)) / 2;
   const MAX_SPEED = 11;
@@ -120,7 +120,7 @@
       for (let k = 0; k < count && soft.length > 0; k++) {
         const b = soft.splice((level * 7 + k * 13) % soft.length, 1)[0];
         b.type = 'bomb';
-        b.color = '#3a3350';
+        b.color = '#cfc6dc';
       }
     }
   }
@@ -244,7 +244,7 @@
   // 爆発ブロックが壊れたとき：周り8マスのブロックを硬さに関係なく壊す。爆発ブロックがあれば連鎖する
   function explode(bomb) {
     beep(110, 0.3, 'sawtooth', 0.1);
-    spawnParticles(bomb.x + BW / 2, bomb.y + BH / 2, '#ff9f43');
+    spawnParticles(bomb.x + BW / 2, bomb.y + BH / 2, '#ff9a5c');
     for (const o of bricks) {
       if (!o.alive || Math.abs(o.r - bomb.r) > 1 || Math.abs(o.c - bomb.c) > 1) continue;
       o.alive = false;
@@ -366,7 +366,7 @@
     ctx.closePath();
   }
 
-  function text(str, x, y, size, color = '#fff', align = 'center', weight = 'bold') {
+  function text(str, x, y, size, color = '#5b4b73', align = 'center', weight = 'bold') {
     ctx.font = `${weight} ${size}px -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif`;
     ctx.fillStyle = color;
     ctx.textAlign = align;
@@ -375,7 +375,7 @@
   }
 
   function drawOverlay(lines) {
-    ctx.fillStyle = 'rgba(10, 10, 25, 0.72)';
+    ctx.fillStyle = 'rgba(255, 246, 252, 0.82)';
     ctx.fillRect(0, 0, W, H);
     let y = H / 2 - (lines.length - 1) * 22;
     for (const [str, size, color] of lines) {
@@ -385,24 +385,24 @@
   }
 
   function draw() {
-    ctx.fillStyle = '#161830';
+    ctx.fillStyle = '#fff9fc';
     ctx.fillRect(0, 0, W, H);
 
     // HUD
-    text(`SCORE ${score}`, 16, 28, 18, '#fff', 'left');
-    text(`LV ${level}`, W / 2, 28, 18, '#feca57');
+    text(`SCORE ${score}`, 16, 28, 18, '#5b4b73', 'left');
+    text(`LV ${level}`, W / 2, 28, 18, '#f0a43a');
     for (let i = 0; i < lives; i++) {
       ctx.beginPath();
       ctx.arc(W - 64 - i * 18, 28, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#ff5c7a';
+      ctx.fillStyle = '#ff8fab';
       ctx.fill();
     }
     // 一時停止ボタン
     if (state === 'play' || state === 'pause') {
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillStyle = 'rgba(91,75,115,0.15)';
       roundRect(PAUSE_BTN.x, PAUSE_BTN.y, PAUSE_BTN.w, PAUSE_BTN.h, 8);
       ctx.fill();
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#5b4b73';
       ctx.fillRect(PAUSE_BTN.x + 10, PAUSE_BTN.y + 9, 4, 14);
       ctx.fillRect(PAUSE_BTN.x + 18, PAUSE_BTN.y + 9, 4, 14);
     }
@@ -415,15 +415,15 @@
       roundRect(b.x, b.y, BW, BH, 5);
       ctx.fill();
       if (b.maxHp > 1) {
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = '#8e7aa8';
         ctx.lineWidth = 2;
         ctx.stroke();
       }
       if (b.type === 'bomb') {
-        ctx.strokeStyle = '#ff9f43';
+        ctx.strokeStyle = '#ff9a5c';
         ctx.lineWidth = 2;
         ctx.stroke();
-        text('✸', b.x + BW / 2, b.y + BH / 2 + 1, 16, '#ff9f43');
+        text('✸', b.x + BW / 2, b.y + BH / 2 + 1, 16, '#ff9a5c');
         continue;
       }
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
@@ -443,18 +443,18 @@
     // パドル
     if (state !== 'title') {
       const g = ctx.createLinearGradient(0, paddle.y - paddle.h / 2, 0, paddle.y + paddle.h / 2);
-      g.addColorStop(0, '#7ed6ff');
-      g.addColorStop(1, '#3a86ff');
+      g.addColorStop(0, '#b9e3ff');
+      g.addColorStop(1, '#8fb8f5');
       ctx.fillStyle = g;
       roundRect(paddle.x - paddle.w / 2, paddle.y - paddle.h / 2, paddle.w, paddle.h, 6);
       ctx.fill();
 
       // ボール
-      ctx.shadowColor = '#fff';
+      ctx.shadowColor = '#e9a8d6';
       ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#ff9ccf';
       ctx.fill();
       ctx.shadowBlur = 0;
     }
@@ -462,30 +462,30 @@
     // 画面ごとの案内
     if (state === 'title') {
       drawOverlay([
-        ['ブロック崩し', 40, '#feca57'],
-        ['タップでスタート', 22, '#fff'],
-        ['指でなぞる / マウス / ←→キーで操作', 15, '#aab'],
-        [best ? `ベスト ${best}` : '', 16, '#7ed6ff'],
+        ['ブロック崩し', 40, '#f0a43a'],
+        ['タップでスタート', 22, '#5b4b73'],
+        ['指でなぞる / マウス / ←→キーで操作', 15, '#9a8bb0'],
+        [best ? `ベスト ${best}` : '', 16, '#5aa9e6'],
       ]);
     } else if (state === 'ready') {
-      text('タップで発射', W / 2, H / 2 + 60, 20, 'rgba(255,255,255,0.8)');
+      text('タップで発射', W / 2, H / 2 + 60, 20, 'rgba(91,75,115,0.8)');
     } else if (state === 'pause') {
       drawOverlay([
-        ['一時停止', 34, '#fff'],
-        ['タップで再開', 20, '#aab'],
+        ['一時停止', 34, '#5b4b73'],
+        ['タップで再開', 20, '#9a8bb0'],
       ]);
     } else if (state === 'over') {
       drawOverlay([
-        ['ゲームオーバー', 36, '#ff5c7a'],
-        [`スコア ${score}`, 24, '#fff'],
-        [`ベスト ${best}`, 18, '#7ed6ff'],
-        ['タップでもう一度', 18, '#aab'],
+        ['ゲームオーバー', 36, '#ff7a9c'],
+        [`スコア ${score}`, 24, '#5b4b73'],
+        [`ベスト ${best}`, 18, '#5aa9e6'],
+        ['タップでもう一度', 18, '#9a8bb0'],
       ]);
     } else if (state === 'clear') {
       drawOverlay([
-        [`ステージ ${level} クリア！`, 34, '#1dd1a1'],
-        [`スコア ${score}`, 22, '#fff'],
-        ['タップで次のステージへ', 18, '#aab'],
+        [`ステージ ${level} クリア！`, 34, '#4fc9a0'],
+        [`スコア ${score}`, 22, '#5b4b73'],
+        ['タップで次のステージへ', 18, '#9a8bb0'],
       ]);
     }
   }
